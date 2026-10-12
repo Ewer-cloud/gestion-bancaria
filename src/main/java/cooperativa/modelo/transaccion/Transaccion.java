@@ -2,8 +2,9 @@ package cooperativa.modelo.transaccion;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
-/** Movimiento de una cuenta. Inmutable: sin setters. (M2 - Daniel) */
+/** Movimiento inmutable sobre una cuenta. Sin setters. */
 public class Transaccion {
     private final String id;
     private final String numeroCuenta;
@@ -11,33 +12,33 @@ public class Transaccion {
     private final BigDecimal monto;
     private final LocalDateTime fecha;
 
-    public Transaccion(String id, String numeroCuenta, TipoTransaccion tipo, BigDecimal monto, LocalDateTime fecha) {
-        this.id = id;
-        this.numeroCuenta = numeroCuenta;
-        this.tipo = tipo;
-        this.monto = monto;
-        this.fecha = fecha;
+    public Transaccion(String id, String numeroCuenta, TipoTransaccion tipo,
+                       BigDecimal monto, LocalDateTime fecha) {
+        this.id = Objects.requireNonNull(id, "id");
+        this.numeroCuenta = Objects.requireNonNull(numeroCuenta, "numeroCuenta");
+        this.tipo = Objects.requireNonNull(tipo, "tipo");
+        this.monto = Objects.requireNonNull(monto, "monto");
+        this.fecha = Objects.requireNonNull(fecha, "fecha");
     }
 
-    public String getId() {
-        return id;
+    public String getId() { return id; }
+    public String getNumeroCuenta() { return numeroCuenta; }
+    public TipoTransaccion getTipo() { return tipo; }
+    public BigDecimal getMonto() { return monto; }
+    public LocalDateTime getFecha() { return fecha; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Transaccion otra)) return false;
+        return id.equals(otra.id);
     }
 
-    public String getNumeroCuenta() {
-        return numeroCuenta;
-    }
+    @Override
+    public int hashCode() { return Objects.hash(id); }
 
-    public TipoTransaccion getTipo() {
-        return tipo;
+    @Override
+    public String toString() {
+        return id + " | " + tipo + " | cuenta " + numeroCuenta + " | " + monto + " | " + fecha;
     }
-
-    public BigDecimal getMonto() {
-        return monto;
-    }
-
-    public LocalDateTime getFecha() {
-        return fecha;
-    }
-
-    // TODO M2: equals y hashCode por id, toString
 }

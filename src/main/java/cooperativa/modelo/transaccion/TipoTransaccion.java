@@ -1,6 +1,6 @@
 package cooperativa.modelo.transaccion;
 
-/** Tipos de movimiento que registra el sistema. (M2 - Daniel) */
+/** Tipos de movimiento que registra el sistema. */
 public enum TipoTransaccion {
     DEPOSITO,
     RETIRO,
