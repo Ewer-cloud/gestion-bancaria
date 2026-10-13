@@ -13,20 +13,19 @@ public class VentanaPrincipal extends JFrame {
     public VentanaPrincipal(Banco banco) {
         super("Cooperativa X - Gestión bancaria");
         this.banco = banco;
-        // TODO M5: JTabbedPane con los paneles
 
         setSize(900, 600);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null); // centra la ventana
 
-        JTabbedPane Pestañas = new JTabbedPane();
-        Pestañas.addTab("Clientes", new JPanel());
-        Pestañas.addTab("Cuentas", new JPanel());
-        Pestañas.addTab("Operaciones", new JPanel());
-        Pestañas.addTab("Búsquedas", new JPanel());
-        Pestañas.addTab("Alertas", new JPanel ());
+        JTabbedPane Pestanas = new JTabbedPane();
+        Pestanas.addTab("Clientes", new JPanel());
+        Pestanas.addTab("Cuentas", new JPanel());
+        Pestanas.addTab("Operaciones", new JPanel());
+        Pestanas.addTab("Busquedas", new JPanel());
+        Pestanas.addTab("Alertas", new JPanel ());
 
-        add(Pestañas);
+        add(Pestanas);
 
     }
 }
