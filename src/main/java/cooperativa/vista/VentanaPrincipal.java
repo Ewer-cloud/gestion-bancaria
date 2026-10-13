@@ -18,14 +18,14 @@ public class VentanaPrincipal extends JFrame {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null); // centra la ventana
 
-        JTabbedPane Pestanas = new JTabbedPane();
-        Pestanas.addTab("Clientes", new JPanel());
-        Pestanas.addTab("Cuentas", new JPanel());
-        Pestanas.addTab("Operaciones", new JPanel());
-        Pestanas.addTab("Busquedas", new JPanel());
-        Pestanas.addTab("Alertas", new JPanel ());
+        JTabbedPane pestanas = new JTabbedPane();
+        pestanas.addTab("Clientes", new JPanel());
+        pestanas.addTab("Cuentas", new JPanel());
+        pestanas.addTab("Operaciones", new JPanel());
+        pestanas.addTab("Busquedas", new JPanel());
+        pestanas.addTab("Alertas", new JPanel ());
 
-        add(Pestanas);
+        add(pestanas);
 
     }
 }
