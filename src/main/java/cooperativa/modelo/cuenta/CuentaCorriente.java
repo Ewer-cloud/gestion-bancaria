@@ -20,7 +20,14 @@ public class CuentaCorriente extends Cuenta implements Transferible {
 
     @Override
     public void retirar(BigDecimal monto) throws SaldoInsuficienteException, CuentaBloqueadaException {
-        // TODO M1: validar monto, bloqueo y que no se pase del límite de sobregiro
-        throw new UnsupportedOperationException("Pendiente de implementar");
+        validarMonto(monto);
+        if (bloqueada) {
+            throw new CuentaBloqueadaException("La cuenta " + numero + " está bloqueada");
+        }
+        BigDecimal disponible = saldo.add(LIMITE_SOBREGIRO);
+        if (monto.compareTo(disponible) > 0) {
+            throw new SaldoInsuficienteException("Supera el límite de sobregiro en la cuenta " + numero);
+        }
+        saldo = saldo.subtract(monto);
     }
 }
