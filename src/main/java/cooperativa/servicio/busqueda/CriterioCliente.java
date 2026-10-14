@@ -9,11 +9,11 @@ public class CriterioCliente implements CriterioBusqueda {
     private final Set<String> numerosDeCuenta;
 
     public CriterioCliente(Set<String> numerosDeCuenta) {
-        this.numerosDeCuenta = numerosDeCuenta;
+        this.numerosDeCuenta = Set.copyOf(numerosDeCuenta);
     }
 
     @Override
     public boolean cumple(Transaccion transaccion) {
-        throw new UnsupportedOperationException("Pendiente de implementar");
+        return numerosDeCuenta.contains(transaccion.getNumeroCuenta());
     }
 }
