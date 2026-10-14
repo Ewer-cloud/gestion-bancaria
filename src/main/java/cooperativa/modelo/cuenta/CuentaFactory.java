@@ -11,7 +11,16 @@ public final class CuentaFactory {
      * @param tipo "AHORRO" o "CORRIENTE" (igual que la columna tipo de la BD)
      */
     public static Cuenta crear(String tipo, String numero, String idTitular, BigDecimal saldo, boolean bloqueada) {
-        // TODO M1: devolver CuentaAhorro o CuentaCorriente según el tipo; IllegalArgumentException si no existe
-        throw new UnsupportedOperationException("Pendiente de implementar");
+            if (tipo == null) {
+                throw new IllegalArgumentException("El tipo de cuenta no puede ser nulo");
+            }
+            switch (tipo) {
+                case "AHORRO":
+                    return new CuentaAhorro(numero, idTitular, saldo, bloqueada);
+                case "CORRIENTE":
+                    return new CuentaCorriente(numero, idTitular, saldo, bloqueada);
+                default:
+                    throw new IllegalArgumentException("Tipo de cuenta desconocido: " + tipo);
+            }
+        }
     }
-}
