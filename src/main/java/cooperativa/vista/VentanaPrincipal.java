@@ -6,7 +6,6 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
-/** Ventana con una pestaña por panel. Solo habla con Banco. (M5 - Valeria) */
 public class VentanaPrincipal extends JFrame {
     private final Banco banco;
 
@@ -22,7 +21,7 @@ public class VentanaPrincipal extends JFrame {
         pestanas.addTab("Clientes", new JPanel());
         pestanas.addTab("Cuentas", new JPanel());
         pestanas.addTab("Operaciones", new JPanel());
-        pestanas.addTab("Busquedas", new JPanel());
+        pestanas.addTab("Búsqueda", new JPanel());
         pestanas.addTab("Alertas", new JPanel ());
 
         add(pestanas);

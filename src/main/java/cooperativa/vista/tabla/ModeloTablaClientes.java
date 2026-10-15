@@ -6,27 +6,35 @@ import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Modelo de tabla de Cliente. (M5 - Valeria) */
 public class ModeloTablaClientes extends AbstractTableModel {
-    private List<Cliente> datos = new ArrayList<>();
+    private final String[] columnas = {"ID", "Nombre", "Teléfono"};
+    private List<Cliente> clientes = new ArrayList<>();
 
-    public void setDatos(List<Cliente> datos) {
-        this.datos = datos;
+    public void setClientes(List<Cliente> clientes) {
+        this.clientes = new ArrayList<>(clientes);
         fireTableDataChanged();
     }
 
     @Override
     public int getRowCount() {
-        return datos.size();
+        return clientes.size();
     }
 
     @Override
     public int getColumnCount() {
-        return 0; // TODO M5: número de columnas
+        return columnas.length; // TODO M5: número de columnas
     }
 
+    public String getValuAt(int fila, int columna) {
+        return columnas[columna];
+    }
     @Override
     public Object getValueAt(int fila, int columna) {
-        return null; // TODO M5
+        Cliente cliente = clientes.get(fila);
+        return switch (columna) {
+            case 0 -> cliente.getId();
+            case 1 -> cliente.getNombre();
+            default -> cliente.getTelefono();
+        };
     }
 }
