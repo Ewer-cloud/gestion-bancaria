@@ -4,14 +4,16 @@ import cooperativa.servicio.Banco;
 import cooperativa.servicio.alerta.Alerta;
 import cooperativa.servicio.alerta.AlertaListener;
 
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-/** Lista las alertas con su nivel de riesgo. Es el Observer de la vista. (M5 - Valeria) */
+
 public class PanelAlertas extends JPanel implements AlertaListener {
     private final Banco banco;
 
     public PanelAlertas(Banco banco) {
         this.banco = banco;
+        add(new JLabel("Alertas (en construcción)"));
         // TODO M5: banco.getDetector().registrarListener(this)
     }
 
