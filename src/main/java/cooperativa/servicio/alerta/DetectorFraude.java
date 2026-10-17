@@ -3,39 +3,56 @@ package cooperativa.servicio.alerta;
 import cooperativa.modelo.transaccion.Transaccion;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /** Sujeto del Observer: aplica las reglas activas y avisa a los listeners. No conoce Swing. (M4 - Víctor) */
 public class DetectorFraude {
     private final List<AlertaListener> listeners = new ArrayList<>();
     private final List<ReglaFraude> reglas = new ArrayList<>();
+    private final Set<String> reglasDesactivadas = new HashSet<>();
 
     public void registrarListener(AlertaListener listener) {
-        // TODO M4
+        listeners.add(listener);
     }
 
     public void quitarListener(AlertaListener listener) {
-        // TODO M4
+        listeners.remove(listener);
     }
 
     public void agregarRegla(ReglaFraude regla) {
-        // TODO M4
+        reglas.add(regla);
     }
 
     public void activarRegla(String nombre) {
-        // TODO M4
+        reglasDesactivadas.remove(nombre);
     }
 
     public void desactivarRegla(String nombre) {
-        // TODO M4
+        reglasDesactivadas.add(nombre);
     }
 
     public List<ReglaFraude> getReglas() {
-        throw new UnsupportedOperationException("Pendiente de implementar");
+        return Collections.unmodifiableList(reglas);
     }
 
     /** Evalúa la transacción con las reglas activas y notifica cada alerta generada. */
     public void analizar(Transaccion transaccion, List<Transaccion> historial) {
-        // TODO M4
+        for (ReglaFraude regla : reglas) {
+            if (reglasDesactivadas.contains(regla.getNombre())) {
+                continue;
+            }
+            Optional<Alerta> alerta = regla.evaluar(transaccion, historial);
+            alerta.ifPresent(this::avisar);
+        }
+    }
+
+    private void avisar(Alerta alerta) {
+        for (AlertaListener listener : listeners) {
+            listener.onAlerta(alerta);
+        }
     }
 }
