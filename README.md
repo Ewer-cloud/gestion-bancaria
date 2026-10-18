@@ -14,14 +14,22 @@ Proyecto final de Programación Orientada a Objetos. Es un sistema para que el c
 
 Java (JDK 25), Maven, Swing, SQLite con JDBC, JUnit 5, Git y GitHub.
 
-## Cómo compilar
+## Cómo compilar y ejecutar
 
 ```
 git clone https://github.com/Ewer-cloud/gestion-bancaria.git
-mvn compile
+mvn compile      # compila
+mvn test         # corre las pruebas JUnit
 ```
 
-Por ahora el proyecto solo compila: las clases tienen sus firmas y los métodos están marcados con `// TODO`.
+Para ejecutar, abre `cooperativa.Main` en IntelliJ y dale Run (con JDK 25).
+Por defecto guarda en SQLite (archivo `cooperativa.db`, que se crea solo y no se sube a Git).
+Para probar sin base de datos: Run > Edit Configurations > Program arguments: `--memoria`.
+
+Si al arrancar aparece una advertencia sobre "acceso nativo" de sqlite-jdbc, no es un error:
+se silencia con la opción de VM `--enable-native-access=ALL-UNNAMED`.
+
+Estado: etapa 2 completa (núcleo / capa 1 funcionando de punta a punta, más los repositorios SQLite de las 3 tablas).
 
 ## Estructura
 

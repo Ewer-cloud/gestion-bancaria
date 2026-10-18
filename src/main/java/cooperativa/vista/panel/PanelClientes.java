@@ -3,7 +3,6 @@ package cooperativa.vista.panel;
 import cooperativa.servicio.Banco;
 import cooperativa.vista.tabla.ModeloTablaClientes;
 
-
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -14,7 +13,8 @@ import javax.swing.JTextField;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 
-public class PanelClientes extends JPanel {
+/** Formulario para crear clientes y tabla de clientes. (M5 - Valeria) */
+public class PanelClientes extends JPanel implements Refrescable {
     private final Banco banco;
     private final ModeloTablaClientes modelo = new ModeloTablaClientes();
     private final JTextField campoNombre = new JTextField(15);
@@ -27,9 +27,9 @@ public class PanelClientes extends JPanel {
         JPanel formulario = new JPanel(new FlowLayout(FlowLayout.LEFT));
         formulario.add(new JLabel("Nombre:"));
         formulario.add(campoNombre);
-        formulario.add(new JLabel("Telefono:"));
+        formulario.add(new JLabel("Teléfono:"));
         formulario.add(campoTelefono);
-        JButton botonCrear = new JButton("Crear Cliente");
+        JButton botonCrear = new JButton("Crear cliente");
         formulario.add(botonCrear);
 
         add(formulario, BorderLayout.NORTH);
@@ -45,14 +45,13 @@ public class PanelClientes extends JPanel {
             campoNombre.setText("");
             campoTelefono.setText("");
             refrescar();
-
         } catch (RuntimeException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    private void refrescar() {
+    @Override
+    public void refrescar() {
         modelo.setClientes(banco.listarClientes());
     }
-
 }

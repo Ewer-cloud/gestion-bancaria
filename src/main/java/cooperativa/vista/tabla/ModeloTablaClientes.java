@@ -6,6 +6,7 @@ import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
 import java.util.List;
 
+/** Modelo de tabla de Cliente. (M5 - Valeria) */
 public class ModeloTablaClientes extends AbstractTableModel {
     private final String[] columnas = {"ID", "Nombre", "Teléfono"};
     private List<Cliente> clientes = new ArrayList<>();
@@ -22,12 +23,15 @@ public class ModeloTablaClientes extends AbstractTableModel {
 
     @Override
     public int getColumnCount() {
-        return columnas.length; // TODO M5: número de columnas
+        return columnas.length;
     }
 
-    public String getValuAt(int fila, int columna) {
+    /** Nombre de cada columna (el encabezado de la tabla). */
+    @Override
+    public String getColumnName(int columna) {
         return columnas[columna];
     }
+
     @Override
     public Object getValueAt(int fila, int columna) {
         Cliente cliente = clientes.get(fila);
