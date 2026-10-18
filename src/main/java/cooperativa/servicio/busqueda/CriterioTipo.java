@@ -13,6 +13,6 @@ public class CriterioTipo implements CriterioBusqueda {
 
     @Override
     public boolean cumple(Transaccion transaccion) {
-        throw new UnsupportedOperationException("Pendiente de implementar");
+        return transaccion.getTipo() == tipo;
     }
 }
