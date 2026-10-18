@@ -1,7 +1,6 @@
 package cooperativa.servicio.alerta;
 
 import cooperativa.modelo.transaccion.Transaccion;
-
 import java.time.LocalDateTime;
 
 /** Aviso de un posible fraude. (M4 - Víctor) */
@@ -32,5 +31,10 @@ public class Alerta {
 
     public LocalDateTime getFecha() {
         return fecha;
+    }
+
+    @Override
+    public String toString() {
+        return "[" + nivel + "]" + mensaje;
     }
 }
