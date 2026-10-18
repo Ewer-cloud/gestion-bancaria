@@ -159,6 +159,12 @@ public class Banco {
 
     // ---------- Consultas ----------
 
+    /** Detector de fraude configurado; la vista lo usa para registrar su AlertaListener. */
+    public DetectorFraude getDetector() {
+        verificarConfigurado();
+        return detector;
+    }
+
     public List<Cliente> listarClientes() {
         verificarConfigurado();
         return clientes.listar();
