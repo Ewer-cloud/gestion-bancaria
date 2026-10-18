@@ -4,7 +4,7 @@ import cooperativa.modelo.transaccion.Transaccion;
 
 import java.time.LocalDateTime;
 
-/** Filtra por rango de fechas. (M3 - Ewer) */
+/** Filtra por rango de fechas. Un límite null significa "sin límite".  - Ewer) */
 public class CriterioFecha implements CriterioBusqueda {
     private final LocalDateTime desde;
     private final LocalDateTime hasta;
@@ -16,6 +16,9 @@ public class CriterioFecha implements CriterioBusqueda {
 
     @Override
     public boolean cumple(Transaccion transaccion) {
-        throw new UnsupportedOperationException("Pendiente de implementar");
+        LocalDateTime fecha = transaccion.getFecha();
+        boolean despuesDeDesde = desde == null || !fecha.isBefore(desde);
+        boolean antesDeHasta = hasta == null || !fecha.isAfter(hasta);
+        return despuesDeDesde && antesDeHasta;
     }
 }

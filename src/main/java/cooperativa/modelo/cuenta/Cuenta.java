@@ -2,6 +2,7 @@ package cooperativa.modelo.cuenta;
 
 import cooperativa.modelo.excepcion.CuentaBloqueadaException;
 import cooperativa.modelo.excepcion.SaldoInsuficienteException;
+import cooperativa.modelo.excepcion.MontoInvalidoException;
 
 import java.math.BigDecimal;
 
@@ -48,8 +49,18 @@ public abstract class Cuenta {
 
     /** Valida (monto > 0, cuenta no bloqueada) y suma al saldo. */
     public void depositar(BigDecimal monto) throws CuentaBloqueadaException {
-        // TODO M1: validar y actualizar el saldo
-        throw new UnsupportedOperationException("Pendiente de implementar");
+        validarMonto(monto);
+        if (bloqueada){
+            throw new CuentaBloqueadaException("La cuenta " + numero + " está bloqueada");
+        }
+        saldo = saldo.add(monto);
+
+    }
+
+    protected void validarMonto(BigDecimal monto){
+        if (monto == null || monto.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new MontoInvalidoException("El monto debe ser mayor a cero");
+        }
     }
 
     /** Cada tipo de cuenta valida el retiro a su manera (polimorfismo). */
@@ -58,5 +69,22 @@ public abstract class Cuenta {
     /** Devuelve "AHORRO" o "CORRIENTE" (es el valor de la columna tipo en la BD). */
     public abstract String getTipo();
 
-    // TODO M1: equals y hashCode por numero, y toString legible
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Cuenta)) return false;
+        Cuenta otra = (Cuenta) o;
+        return numero.equals(otra.numero);
+    }
+
+    @Override
+    public int hashCode() {
+        return numero.hashCode();
+    }
+    @Override
+    public String toString() {
+        return getTipo() + "[numero=" + numero
+                + ", titular=" + idTitular + ", saldo=" + saldo
+                + ", bloqueada=" + bloqueada + "]";
+    }
 }

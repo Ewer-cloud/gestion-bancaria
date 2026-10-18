@@ -2,8 +2,11 @@ package cooperativa.servicio;
 
 import cooperativa.modelo.cliente.Cliente;
 import cooperativa.modelo.cuenta.Cuenta;
+import cooperativa.modelo.cuenta.CuentaFactory;
+import cooperativa.modelo.cuenta.GeneradoraDeIntereses;
 import cooperativa.modelo.excepcion.CuentaBloqueadaException;
 import cooperativa.modelo.excepcion.SaldoInsuficienteException;
+import cooperativa.modelo.transaccion.TipoTransaccion;
 import cooperativa.modelo.transaccion.Transaccion;
 import cooperativa.repositorio.Repositorio;
 import cooperativa.servicio.alerta.DetectorFraude;
@@ -11,113 +14,213 @@ import cooperativa.servicio.busqueda.CriterioBusqueda;
 import cooperativa.servicio.busqueda.MotorBusqueda;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Singleton y fachada: la vista solo habla con Banco. Recibe los repositorios desde afuera,
- * así funciona igual con memoria o con SQLite. (M2 - Daniel)
+ * Fachada y Singleton del sistema. La vista solo llama a este servicio.
+ * No sabe si los datos viven en memoria o en SQLite: recibe los repositorios
+ * desde afuera con {@link #configurar}.
+ * Orden de cada operación: validar, modificar cuenta, guardar cuenta,
+ * guardar transacción y notificar al detector.
  */
-public final class Banco {
+public class Banco {
     private static Banco instancia;
 
-    private final Repositorio<Cuenta> cuentas;
-    private final Repositorio<Cliente> clientes;
-    private final Repositorio<Transaccion> transacciones;
-    private final DetectorFraude detector;
-    private final MotorBusqueda motor;
+    private Repositorio<Cliente> clientes;
+    private Repositorio<Cuenta> cuentas;
+    private Repositorio<Transaccion> transacciones;
+    private DetectorFraude detector;
 
-    private Banco(Repositorio<Cuenta> cuentas, Repositorio<Cliente> clientes,
-                  Repositorio<Transaccion> transacciones, DetectorFraude detector, MotorBusqueda motor) {
-        this.cuentas = cuentas;
-        this.clientes = clientes;
-        this.transacciones = transacciones;
-        this.detector = detector;
-        this.motor = motor;
-    }
+    private int contadorClientes;
+    private int contadorCuentas;
+    private int contadorTransacciones;
 
-    /** Se llama una sola vez al arrancar (desde Main). */
-    public static void configurar(Repositorio<Cuenta> cuentas, Repositorio<Cliente> clientes,
-                                  Repositorio<Transaccion> transacciones, DetectorFraude detector,
-                                  MotorBusqueda motor) {
-        instancia = new Banco(cuentas, clientes, transacciones, detector, motor);
-    }
+    private Banco() { }
 
-    public static Banco getInstancia() {
+    public static synchronized Banco getInstancia() {
         if (instancia == null) {
-            throw new IllegalStateException("Banco no está configurado: llamar a Banco.configurar(...)");
+            instancia = new Banco();
         }
         return instancia;
     }
 
-    /** Solo para pruebas: deja el Singleton limpio. */
-    public static void reiniciar() {
-        instancia = null;
+    /** Se llama una vez al arrancar (Main) o al inicio de cada prueba. */
+    public synchronized void configurar(Repositorio<Cliente> clientes,
+                                        Repositorio<Cuenta> cuentas,
+                                        Repositorio<Transaccion> transacciones,
+                                        DetectorFraude detector) {
+        this.clientes = clientes;
+        this.cuentas = cuentas;
+        this.transacciones = transacciones;
+        this.detector = detector;
+        // Con SQLite los datos ya existen: los ids nuevos deben continuar la secuencia.
+        this.contadorClientes = mayorSecuencia(clientes.listar().stream().map(Cliente::getId).toList(), "CLI");
+        this.contadorCuentas = mayorSecuencia(cuentas.listar().stream().map(Cuenta::getNumero).toList(), "CUE");
+        this.contadorTransacciones = mayorSecuencia(transacciones.listar().stream().map(Transaccion::getId).toList(), "TRX");
     }
 
-    public DetectorFraude getDetector() {
-        return detector;
+    /** Deja el Singleton limpio para que las pruebas empiecen de cero. */
+    public synchronized void reiniciar() {
+        clientes = null;
+        cuentas = null;
+        transacciones = null;
+        detector = null;
+        contadorClientes = 0;
+        contadorCuentas = 0;
+        contadorTransacciones = 0;
     }
 
-    // ---- Clientes y cuentas ----
+    // ---------- Clientes y cuentas ----------
 
     public Cliente crearCliente(String nombre, String telefono) {
-        throw new UnsupportedOperationException("Pendiente de implementar");
+        verificarConfigurado();
+        Cliente cliente = new Cliente(String.format("CLI-%03d", ++contadorClientes), nombre, telefono);
+        clientes.guardar(cliente);
+        return cliente;
     }
 
     /** @param tipo "AHORRO" o "CORRIENTE" */
-    public Cuenta abrirCuenta(String idCliente, String tipo, BigDecimal saldoInicial) {
-        throw new UnsupportedOperationException("Pendiente de implementar");
+    public Cuenta abrirCuenta(String idCliente, String tipo) {
+        verificarConfigurado();
+        clientes.buscarPorId(idCliente)
+                .orElseThrow(() -> new IllegalArgumentException("No existe el cliente " + idCliente));
+        String numero = String.format("CUE-%03d", ++contadorCuentas);
+        Cuenta cuenta = CuentaFactory.crear(tipo, numero, idCliente, BigDecimal.ZERO, false);
+        cuentas.guardar(cuenta);
+        return cuenta;
     }
 
-    public void bloquearCuenta(String numeroCuenta) {
-        // TODO M2
+    public void bloquear(String numeroCuenta) {
+        Cuenta cuenta = obtenerCuenta(numeroCuenta);
+        cuenta.bloquear();
+        cuentas.guardar(cuenta);
     }
 
-    public void desbloquearCuenta(String numeroCuenta) {
-        // TODO M2
+    public void desbloquear(String numeroCuenta) {
+        Cuenta cuenta = obtenerCuenta(numeroCuenta);
+        cuenta.desbloquear();
+        cuentas.guardar(cuenta);
     }
 
-    // ---- Operaciones ----
+    // ---------- Operaciones ----------
 
     public void depositar(String numeroCuenta, BigDecimal monto) throws CuentaBloqueadaException {
-        // TODO M2: validar, modificar cuenta, guardar cuenta, guardar transacción, notificar al detector
+        Cuenta cuenta = obtenerCuenta(numeroCuenta);
+        cuenta.depositar(monto);
+        cuentas.guardar(cuenta);
+        registrar(numeroCuenta, TipoTransaccion.DEPOSITO, monto);
     }
 
     public void retirar(String numeroCuenta, BigDecimal monto)
-            throws SaldoInsuficienteException, CuentaBloqueadaException {
-        // TODO M2
+            throws CuentaBloqueadaException, SaldoInsuficienteException {
+        Cuenta cuenta = obtenerCuenta(numeroCuenta);
+        cuenta.retirar(monto);
+        cuentas.guardar(cuenta);
+        registrar(numeroCuenta, TipoTransaccion.RETIRO, monto);
     }
 
-    /** Coordina dos cuentas: retira del origen, deposita en el destino y registra dos transacciones. */
+    /** Retira del origen, deposita en el destino y registra dos transacciones. */
     public void transferir(String numeroOrigen, String numeroDestino, BigDecimal monto)
-            throws SaldoInsuficienteException, CuentaBloqueadaException {
-        // TODO M2
+            throws CuentaBloqueadaException, SaldoInsuficienteException {
+        if (numeroOrigen.equals(numeroDestino)) {
+            throw new IllegalArgumentException("La cuenta origen y destino deben ser distintas");
+        }
+        Cuenta origen = obtenerCuenta(numeroOrigen);
+        Cuenta destino = obtenerCuenta(numeroDestino);
+
+        origen.retirar(monto);
+        try {
+            destino.depositar(monto);
+        } catch (CuentaBloqueadaException | RuntimeException e) {
+            origen.depositar(monto); // deshacer el retiro para no perder dinero
+            throw e;
+        }
+        cuentas.guardar(origen);
+        cuentas.guardar(destino);
+        registrar(numeroOrigen, TipoTransaccion.TRANSFERENCIA_SALIDA, monto);
+        registrar(numeroDestino, TipoTransaccion.TRANSFERENCIA_ENTRADA, monto);
     }
 
-    /** Aplica intereses a las cuentas que los generan (meta). */
+    /** Capa 2: aplica interés a las cuentas de ahorro y registra cada movimiento. */
     public void cerrarMes() {
-        // TODO M2 meta
+        verificarConfigurado();
+        for (Cuenta cuenta : cuentas.listar()) {
+            if (cuenta instanceof GeneradoraDeIntereses generadora) {
+                BigDecimal interes = generadora.calcularInteres();
+                if (interes.signum() > 0) {
+                    generadora.aplicarInteres();
+                    cuentas.guardar(cuenta);
+                    registrar(cuenta.getNumero(), TipoTransaccion.INTERES, interes);
+                }
+            }
+        }
     }
 
-    // ---- Consultas ----
+    // ---------- Consultas ----------
 
     public List<Cliente> listarClientes() {
-        throw new UnsupportedOperationException("Pendiente de implementar");
+        verificarConfigurado();
+        return clientes.listar();
     }
 
     public List<Cuenta> listarCuentas() {
-        throw new UnsupportedOperationException("Pendiente de implementar");
+        verificarConfigurado();
+        return cuentas.listar();
     }
 
     public List<Cuenta> listarCuentasDeCliente(String idCliente) {
-        throw new UnsupportedOperationException("Pendiente de implementar");
+        verificarConfigurado();
+        return cuentas.listar().stream()
+                .filter(c -> c.getIdTitular().equals(idCliente))
+                .toList();
     }
 
     public List<Transaccion> listarTransacciones() {
-        throw new UnsupportedOperationException("Pendiente de implementar");
+        verificarConfigurado();
+        return transacciones.listar();
     }
 
+    /** Entrega la lista de transacciones al motor de búsqueda de Ewer. */
     public List<Transaccion> buscarTransacciones(CriterioBusqueda... criterios) {
-        throw new UnsupportedOperationException("Pendiente de implementar");
+        verificarConfigurado();
+        return new MotorBusqueda().buscar(transacciones.listar(), criterios);
+    }
+
+    // ---------- Internos ----------
+
+    private Cuenta obtenerCuenta(String numero) {
+        verificarConfigurado();
+        return cuentas.buscarPorId(numero)
+                .orElseThrow(() -> new IllegalArgumentException("No existe la cuenta " + numero));
+    }
+
+    private void registrar(String numeroCuenta, TipoTransaccion tipo, BigDecimal monto) {
+        Transaccion t = new Transaccion(String.format("TRX-%04d", ++contadorTransacciones),
+                numeroCuenta, tipo, monto, LocalDateTime.now());
+        transacciones.guardar(t);
+        if (detector != null) {
+            detector.analizar(t, transacciones.listar());
+        }
+    }
+
+    private void verificarConfigurado() {
+        if (clientes == null) {
+            throw new IllegalStateException("Banco no está configurado: llama a configurar() primero");
+        }
+    }
+
+    private static int mayorSecuencia(List<String> ids, String prefijo) {
+        int mayor = 0;
+        for (String id : ids) {
+            if (id.startsWith(prefijo + "-")) {
+                try {
+                    mayor = Math.max(mayor, Integer.parseInt(id.substring(prefijo.length() + 1)));
+                } catch (NumberFormatException ignorada) {
+                    // id con otro formato: se ignora
+                }
+            }
+        }
+        return mayor;
     }
 }
