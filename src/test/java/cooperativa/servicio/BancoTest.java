@@ -1,5 +1,4 @@
-src/test/java/cooperativa/repositorio/memoria/RepositorioMemoriaTest.javapackage cooperativa.servicio;
-        src/test/java/cooperativa/repositorio/memoria/RepositorioMemoriaTest.javapackage cooperativa.servicio;
+package cooperativa.servicio;
 
 import cooperativa.modelo.cliente.Cliente;
 import cooperativa.modelo.cuenta.Cuenta;
