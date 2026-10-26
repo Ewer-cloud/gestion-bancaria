@@ -2,7 +2,9 @@ package cooperativa.servicio.busqueda;
 
 import cooperativa.modelo.transaccion.Transaccion;
 
-/** Se cumple si se cumple al menos un criterio (meta). (M3 - Ewer) */
+/**
+ * Se cumple si se cumple al menos un criterio (meta). (M3 - Ewer)
+ */
 public class CriterioOr implements CriterioBusqueda {
     private final CriterioBusqueda[] criterios;
 
@@ -12,6 +14,11 @@ public class CriterioOr implements CriterioBusqueda {
 
     @Override
     public boolean cumple(Transaccion transaccion) {
-        throw new UnsupportedOperationException("Pendiente de implementar");
+        for (CriterioBusqueda criterio : criterios) {
+            if (criterio.cumple(transaccion)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

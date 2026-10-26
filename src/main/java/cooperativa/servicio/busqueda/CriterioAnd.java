@@ -12,6 +12,11 @@ public class CriterioAnd implements CriterioBusqueda {
 
     @Override
     public boolean cumple(Transaccion transaccion) {
-        throw new UnsupportedOperationException("Pendiente de implementar");
+        for (CriterioBusqueda criterio : criterios) {
+            if (!criterio.cumple(transaccion)) {
+                return false;
+            }
+        }
+        return true;
     }
 }
