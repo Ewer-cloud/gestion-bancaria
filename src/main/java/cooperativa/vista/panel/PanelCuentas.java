@@ -2,16 +2,19 @@ package cooperativa.vista.panel;
 
 import cooperativa.modelo.cliente.Cliente;
 import cooperativa.servicio.Banco;
+import cooperativa.vista.BotonTema;
+import cooperativa.vista.Tarjeta;
+import cooperativa.vista.Tema;
 import cooperativa.vista.tabla.ModeloTablaCuentas;
 
-import javax.swing.JButton;
+import javax.swing.Box;
 import javax.swing.JComboBox;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.SwingConstants;
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.util.List;
 
@@ -26,25 +29,31 @@ public class PanelCuentas extends JPanel implements Refrescable {
 
     public PanelCuentas(Banco banco) {
         this.banco = banco;
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout(0, 18));
+        setOpaque(false);
 
-        JPanel arriba = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        arriba.add(new JLabel("Cliente:"));
-        arriba.add(comboClientes);
-        arriba.add(new JLabel("Tipo:"));
-        arriba.add(comboTipo);
-        JButton botonAbrir = new JButton("Abrir cuenta");
-        arriba.add(botonAbrir);
+        comboClientes.setPreferredSize(new Dimension(300, 38)); // cabe "CLI-001 - Nombre (teléfono)"
+        BotonTema botonAbrir = new BotonTema("Abrir cuenta", BotonTema.Estilo.PRIMARIO);
+        Tarjeta arriba = new Tarjeta(new BorderLayout(0, 14));
+        arriba.add(Tema.subtitulo("Abrir una cuenta"), BorderLayout.NORTH);
+        arriba.add(Tema.fila(
+                Tema.campo("Cliente", comboClientes),
+                Tema.campo("Tipo de cuenta", comboTipo),
+                Tema.campo(null, botonAbrir)), BorderLayout.CENTER);
 
-        JPanel abajo = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JButton botonBloquear = new JButton("Bloquear seleccionada");
-        JButton botonDesbloquear = new JButton("Desbloquear seleccionada");
+        BotonTema botonBloquear = new BotonTema("Bloquear seleccionada", BotonTema.Estilo.PELIGRO);
+        BotonTema botonDesbloquear = new BotonTema("Desbloquear seleccionada", BotonTema.Estilo.SECUNDARIO);
+        JPanel abajo = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        abajo.setOpaque(false);
         abajo.add(botonBloquear);
+        abajo.add(Box.createHorizontalStrut(10));
         abajo.add(botonDesbloquear);
 
         add(arriba, BorderLayout.NORTH);
-        add(new JScrollPane(tabla), BorderLayout.CENTER);
-        add(abajo, BorderLayout.SOUTH);
+        add(Tema.tarjetaConTabla("Cuentas del cliente", tabla, abajo), BorderLayout.CENTER);
+        Tema.alinearDerecha(tabla, 3);
+        tabla.getColumnModel().getColumn(4).setCellRenderer(new Tema.Celda(SwingConstants.LEFT,
+                estado -> "Bloqueada".equals(estado) ? Tema.PELIGRO : Tema.EXITO));
 
         comboClientes.addActionListener(e -> {
             if (!actualizando) {

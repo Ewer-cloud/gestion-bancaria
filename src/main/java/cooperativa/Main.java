@@ -13,6 +13,7 @@ import cooperativa.servicio.Banco;
 import cooperativa.servicio.alerta.DetectorFraude;
 import cooperativa.servicio.alerta.ReglaMontoAlto;
 import cooperativa.servicio.alerta.ReglaRafaga;
+import cooperativa.vista.Tema;
 import cooperativa.vista.VentanaPrincipal;
 
 import javax.swing.SwingUtilities;
@@ -66,6 +67,9 @@ public class Main {
         }
 
         // 5. Ventana (siempre en el hilo de Swing)
-        SwingUtilities.invokeLater(() -> new VentanaPrincipal(banco).setVisible(true));
+        SwingUtilities.invokeLater(() -> {
+            Tema.instalar();
+            new VentanaPrincipal(banco).setVisible(true);
+        });
     }
 }
