@@ -88,7 +88,7 @@ El dinero se guarda como texto y se reconstruye como `BigDecimal` al leer. Las t
 
 ```
 src/main/java/cooperativa/
-├─ modelo/        cuenta, cliente, transaccion, excepcion, decorador
+├─ modelo/        cuenta, cliente, transaccion, excepcion
 ├─ repositorio/   memoria, sqlite
 ├─ servicio/      Banco, busqueda, alerta
 ├─ vista/         panel, tabla

@@ -10,20 +10,23 @@ import cooperativa.servicio.busqueda.CriterioCliente;
 import cooperativa.servicio.busqueda.CriterioFecha;
 import cooperativa.servicio.busqueda.CriterioMonto;
 import cooperativa.servicio.busqueda.CriterioTipo;
+import cooperativa.vista.BotonTema;
 import cooperativa.vista.Formato;
+import cooperativa.vista.Tarjeta;
+import cooperativa.vista.Tema;
 import cooperativa.vista.tabla.ModeloTablaTransacciones;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -50,42 +53,43 @@ public class PanelBusqueda extends JPanel implements Refrescable {
 
     public PanelBusqueda(Banco banco) {
         this.banco = banco;
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout(0, 18));
+        setOpaque(false);
 
         comboTipo.addItem(TODOS);
         for (TipoTransaccion t : TipoTransaccion.values()) {
             comboTipo.addItem(t);
         }
 
+        comboCliente.setPreferredSize(new Dimension(270, 38)); // cabe "CLI-001 - Nombre (teléfono)"
+        BotonTema botonBuscar = new BotonTema("Buscar", BotonTema.Estilo.PRIMARIO);
+        BotonTema botonLimpiar = new BotonTema("Limpiar filtros", BotonTema.Estilo.SECUNDARIO);
+
         // Dos filas para que todo quepa sin cortarse: montos/tipo/cliente y fechas/botones.
-        JPanel fila1 = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        fila1.add(new JLabel("Monto desde:"));
-        fila1.add(montoMinimo);
-        fila1.add(new JLabel("hasta:"));
-        fila1.add(montoMaximo);
-        fila1.add(new JLabel("Tipo:"));
-        fila1.add(comboTipo);
-        fila1.add(new JLabel("Cliente:"));
-        fila1.add(comboCliente);
-
-        JPanel fila2 = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        fila2.add(new JLabel("Fecha desde (AAAA-MM-DD):"));
-        fila2.add(fechaDesde);
-        fila2.add(new JLabel("hasta:"));
-        fila2.add(fechaHasta);
-        JButton botonBuscar = new JButton("Buscar");
-        JButton botonLimpiar = new JButton("Limpiar filtros");
-        fila2.add(botonBuscar);
-        fila2.add(botonLimpiar);
-
-        JPanel filtros = new JPanel();
+        Tarjeta filtros = new Tarjeta();
         filtros.setLayout(new BoxLayout(filtros, BoxLayout.Y_AXIS));
-        filtros.add(fila1);
-        filtros.add(fila2);
+        filtros.add(Tema.subtitulo("Filtros"));
+        filtros.add(Box.createVerticalStrut(14));
+        filtros.add(Tema.fila(
+                Tema.campo("Monto desde", montoMinimo),
+                Tema.campo("Monto hasta", montoMaximo),
+                Tema.campo("Tipo", comboTipo),
+                Tema.campo("Cliente", comboCliente)));
+        filtros.add(Box.createVerticalStrut(12));
+        filtros.add(Tema.fila(
+                Tema.campo("Fecha desde (AAAA-MM-DD)", fechaDesde),
+                Tema.campo("Fecha hasta (AAAA-MM-DD)", fechaHasta),
+                Tema.campo(null, botonBuscar),
+                Tema.campo(null, botonLimpiar)));
+
+        resumen.setFont(Tema.fuente(Font.BOLD, 13));
+        resumen.setForeground(Tema.TEXTO_SUAVE);
+        JTable tabla = new JTable(modelo);
+        Tarjeta resultados = Tema.tarjetaConTabla("Resultados", tabla, resumen);
+        Tema.formatoTransacciones(tabla);
 
         add(filtros, BorderLayout.NORTH);
-        add(new JScrollPane(new JTable(modelo)), BorderLayout.CENTER);
-        add(resumen, BorderLayout.SOUTH);
+        add(resultados, BorderLayout.CENTER);
 
         botonBuscar.addActionListener(e -> buscar(true));
         botonLimpiar.addActionListener(e -> limpiar());

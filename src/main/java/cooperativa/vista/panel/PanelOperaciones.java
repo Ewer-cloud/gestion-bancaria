@@ -5,22 +5,24 @@ import cooperativa.modelo.excepcion.CuentaBloqueadaException;
 import cooperativa.modelo.excepcion.SaldoInsuficienteException;
 import cooperativa.modelo.transaccion.Transaccion;
 import cooperativa.servicio.Banco;
+import cooperativa.vista.BotonTema;
 import cooperativa.vista.Formato;
+import cooperativa.vista.Tarjeta;
+import cooperativa.vista.Tema;
 import cooperativa.vista.tabla.ModeloTablaTransacciones;
 
-import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.FlowLayout;
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.GridLayout;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,58 +48,50 @@ public class PanelOperaciones extends JPanel implements Refrescable {
 
     public PanelOperaciones(Banco banco) {
         this.banco = banco;
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout(0, 18));
+        setOpaque(false);
 
-        JPanel formularios = new JPanel();
-        formularios.setLayout(new BoxLayout(formularios, BoxLayout.Y_AXIS));
-        formularios.add(fila("Depositar", "Cuenta:", cuentaDeposito, montoDeposito, "Depositar", this::depositar));
-        formularios.add(fila("Retirar", "Cuenta:", cuentaRetiro, montoRetiro, "Retirar", this::retirar));
-        formularios.add(filaTransferencia());
+        BotonTema botonDepositar = new BotonTema("Depositar", BotonTema.Estilo.PRIMARIO);
+        botonDepositar.addActionListener(e -> ejecutar(this::depositar));
+        BotonTema botonRetirar = new BotonTema("Retirar", BotonTema.Estilo.PRIMARIO);
+        botonRetirar.addActionListener(e -> ejecutar(this::retirar));
+        BotonTema botonTransferir = new BotonTema("Transferir", BotonTema.Estilo.PRIMARIO);
+        botonTransferir.addActionListener(e -> ejecutar(this::transferir));
 
-        JPanel abajo = new JPanel(new BorderLayout());
-        abajo.setBorder(BorderFactory.createTitledBorder("Últimos movimientos"));
-        abajo.add(new JScrollPane(new JTable(modeloTransacciones)), BorderLayout.CENTER);
-        abajo.add(estado, BorderLayout.SOUTH);
+        JPanel formularios = new JPanel(new GridLayout(1, 3, 16, 0));
+        formularios.setOpaque(false);
+        formularios.add(formulario("Depositar", "Suma dinero a una cuenta",
+                Tema.campo("Cuenta", cuentaDeposito), Tema.campo("Monto", montoDeposito), botonDepositar));
+        formularios.add(formulario("Retirar", "Saca dinero de una cuenta",
+                Tema.campo("Cuenta", cuentaRetiro), Tema.campo("Monto", montoRetiro), botonRetirar));
+        formularios.add(formulario("Transferir", "Mueve dinero entre dos cuentas",
+                Tema.campo("Origen", cuentaOrigen), Tema.campo("Destino", cuentaDestino),
+                Tema.campo("Monto", montoTransferencia), botonTransferir));
+
+        estado.setFont(Tema.fuente(Font.BOLD, 13));
+        JTable tabla = new JTable(modeloTransacciones);
+        Tarjeta movimientos = Tema.tarjetaConTabla("Últimos movimientos", tabla, estado);
+        Tema.formatoTransacciones(tabla);
 
         add(formularios, BorderLayout.NORTH);
-        add(abajo, BorderLayout.CENTER);
+        add(movimientos, BorderLayout.CENTER);
         refrescar();
     }
 
-    private JPanel fila(String titulo, String etiqueta, JComboBox<Cuenta> combo, JTextField monto,
-                        String textoBoton, Operacion operacion) {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        panel.setBorder(BorderFactory.createTitledBorder(titulo));
-        panel.add(new JLabel(etiqueta));
-        panel.add(combo);
-        panel.add(new JLabel("Monto:"));
-        panel.add(monto);
-        JButton boton = new JButton(textoBoton);
-        boton.addActionListener(e -> ejecutar(operacion));
-        panel.add(boton);
-        return panel;
-    }
-
-    private JPanel filaTransferencia() {
-        JPanel origenYDestino = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        origenYDestino.add(new JLabel("Origen:"));
-        origenYDestino.add(cuentaOrigen);
-        origenYDestino.add(new JLabel("Destino:"));
-        origenYDestino.add(cuentaDestino);
-
-        JPanel montoYBoton = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        montoYBoton.add(new JLabel("Monto:"));
-        montoYBoton.add(montoTransferencia);
-        JButton boton = new JButton("Transferir");
-        boton.addActionListener(e -> ejecutar(this::transferir));
-        montoYBoton.add(boton);
-
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(BorderFactory.createTitledBorder("Transferir"));
-        panel.add(origenYDestino);
-        panel.add(montoYBoton);
-        return panel;
+    /** Tarjeta vertical: título, una línea de ayuda y los campos uno debajo del otro. */
+    private static Tarjeta formulario(String titulo, String ayuda, Component... componentes) {
+        Tarjeta tarjeta = new Tarjeta();
+        tarjeta.setLayout(new BoxLayout(tarjeta, BoxLayout.Y_AXIS));
+        tarjeta.add(Tema.subtitulo(titulo));
+        tarjeta.add(Box.createVerticalStrut(2));
+        JLabel textoAyuda = Tema.textoSuave(ayuda);
+        textoAyuda.setAlignmentX(Component.LEFT_ALIGNMENT);
+        tarjeta.add(textoAyuda);
+        for (Component c : componentes) {
+            tarjeta.add(Box.createVerticalStrut(12));
+            tarjeta.add(c);
+        }
+        return tarjeta;
     }
 
     private String depositar() throws CuentaBloqueadaException {
@@ -129,11 +123,11 @@ public class PanelOperaciones extends JPanel implements Refrescable {
     private void ejecutar(Operacion operacion) {
         try {
             String mensaje = operacion.ejecutar();
-            estado.setForeground(new Color(0, 110, 0));
+            estado.setForeground(Tema.EXITO);
             estado.setText("OK: " + mensaje);
             refrescar();
         } catch (CuentaBloqueadaException | SaldoInsuficienteException | RuntimeException ex) {
-            estado.setForeground(Color.RED.darker());
+            estado.setForeground(Tema.PELIGRO);
             estado.setText("Error: " + ex.getMessage());
             JOptionPane.showMessageDialog(this, ex.getMessage(), "No se pudo realizar la operación",
                     JOptionPane.ERROR_MESSAGE);

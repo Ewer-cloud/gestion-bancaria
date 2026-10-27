@@ -4,19 +4,19 @@ import cooperativa.servicio.Banco;
 import cooperativa.servicio.alerta.Alerta;
 import cooperativa.servicio.alerta.AlertaListener;
 import cooperativa.servicio.alerta.NivelRiesgo;
+import cooperativa.vista.BotonTema;
+import cooperativa.vista.Tema;
 import cooperativa.vista.tabla.ModeloTablaAlertas;
 
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.util.List;
 
 /** Lista las alertas de fraude con su nivel de riesgo. Es el Observer: se registra en el DetectorFraude. (M5 - Valeria) */
@@ -26,25 +26,33 @@ public class PanelAlertas extends JPanel implements AlertaListener {
 
     public PanelAlertas(Banco banco) {
         setLayout(new BorderLayout());
+        setOpaque(false);
 
         JTable tabla = new JTable(modelo);
-        tabla.getColumnModel().getColumn(1).setCellRenderer(new RenderizadorRiesgo());
-        tabla.getColumnModel().getColumn(0).setPreferredWidth(140);
-        tabla.getColumnModel().getColumn(1).setPreferredWidth(60);
-        tabla.getColumnModel().getColumn(2).setPreferredWidth(80);
-        tabla.getColumnModel().getColumn(3).setPreferredWidth(520);
-
-        JButton botonLimpiar = new JButton("Limpiar lista");
+        BotonTema botonLimpiar = new BotonTema("Limpiar lista", BotonTema.Estilo.SECUNDARIO);
         botonLimpiar.addActionListener(e -> {
             modelo.setDatos(List.of());
             contador.setText("Sin alertas");
         });
-        JPanel arriba = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        arriba.add(contador);
-        arriba.add(botonLimpiar);
 
-        add(arriba, BorderLayout.NORTH);
-        add(new JScrollPane(tabla), BorderLayout.CENTER);
+        contador.setFont(Tema.fuente(Font.BOLD, 13));
+        contador.setForeground(Tema.TEXTO_SUAVE);
+        JPanel controles = new JPanel(new FlowLayout(FlowLayout.RIGHT, 14, 0));
+        controles.setOpaque(false);
+        controles.add(contador);
+        controles.add(botonLimpiar);
+        JPanel encabezado = new JPanel(new BorderLayout());
+        encabezado.setOpaque(false);
+        encabezado.add(Tema.subtitulo("Alertas de fraude"), BorderLayout.WEST);
+        encabezado.add(controles, BorderLayout.EAST);
+
+        add(Tema.tarjetaConTabla(encabezado, tabla, null), BorderLayout.CENTER);
+        tabla.getColumnModel().getColumn(1).setCellRenderer(new Tema.Celda(SwingConstants.LEFT, valor ->
+                valor instanceof NivelRiesgo nivel ? colorDe(nivel) : null));
+        tabla.getColumnModel().getColumn(0).setPreferredWidth(170);
+        tabla.getColumnModel().getColumn(1).setPreferredWidth(90);
+        tabla.getColumnModel().getColumn(2).setPreferredWidth(100);
+        tabla.getColumnModel().getColumn(3).setPreferredWidth(480);
 
         banco.getDetector().registrarListener(this);
     }
@@ -58,20 +66,12 @@ public class PanelAlertas extends JPanel implements AlertaListener {
         });
     }
 
-    /** Pinta el nivel de riesgo: ALTO rojo, MEDIO naranja, BAJO verde. */
-    private static class RenderizadorRiesgo extends DefaultTableCellRenderer {
-        @Override
-        public Component getTableCellRendererComponent(JTable tabla, Object valor, boolean seleccionada,
-                                                       boolean foco, int fila, int columna) {
-            super.getTableCellRendererComponent(tabla, valor, seleccionada, foco, fila, columna);
-            if (!seleccionada && valor instanceof NivelRiesgo nivel) {
-                setForeground(switch (nivel) {
-                    case ALTO -> new Color(180, 0, 0);
-                    case MEDIO -> new Color(200, 110, 0);
-                    case BAJO -> new Color(0, 130, 0);
-                });
-            }
-            return this;
-        }
+    /** Color del nivel de riesgo: ALTO rojo, MEDIO naranja, BAJO verde. */
+    private static Color colorDe(NivelRiesgo nivel) {
+        return switch (nivel) {
+            case ALTO -> Tema.PELIGRO;
+            case MEDIO -> Tema.AVISO;
+            case BAJO -> Tema.EXITO;
+        };
     }
 }
