@@ -48,9 +48,11 @@ Hito actual: **integración 1** (tag `integracion-1`). El núcleo funciona de pu
 | Pendiente | Quién |
 |---|---|
 | Redondear el interés a 2 decimales en `CuentaAhorro` | Daniel L. |
-| `DetectorFraude.isActiva` con sus pruebas | Víctor |
+| Decidir si el Decorator (seguro y tarjeta) se hace o se corta | Daniel L. |
+| `ReglaHoraRara` y `DetectorFraude.isActiva` con sus pruebas | Víctor |
 | Botón de cierre de mes en `PanelCuentas` | Valeria |
 | Casillas para activar y desactivar reglas en `PanelAlertas` | Valeria y Víctor |
+| `CriterioAnd`, `CriterioOr` y `ExportadorCSV` con sus pruebas | Ewer |
 | Pruebas de `Cliente` y `Transaccion` | Daniel |
 | Documento final (mínimo 3000 palabras, APA) y UML al día | todos |
 
